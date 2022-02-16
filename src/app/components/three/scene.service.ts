@@ -33,9 +33,10 @@ export class SceneService {
   private controls: OrbitControls;
 
   // helper
-  private axisHelper: THREE.AxesHelper;
+  // private axisHelper: THREE.AxesHelper;
   private GridHelper: THREE.GridHelper;
   private GridDistance: number;
+  private circle: THREE.Group;
 
   // gui
   public gui: GUI;
@@ -124,8 +125,9 @@ export class SceneService {
     this.gui.domElement.id = "gui_css";
     this.gui.add(this.params, "GridHelper").onChange((value) => {
       // guiによる設定
-      this.axisHelper.visible = value;
-      this.GridHelper.visible = value;
+      // this.axisHelper.visible = value;
+      // this.GridHelper.visible = value;
+      this.circle.visible = value;
       this.render();
     });
     this.gui.add(this.params, "Perspective").onChange((value) => {
@@ -165,15 +167,16 @@ export class SceneService {
 
   // 床面を生成する
   private createHelper() {
-    this.axisHelper = new THREE.AxesHelper(200);
-    this.axisHelper.name = "axisHelper";
-    this.scene.add(this.axisHelper);
-    this.GridHelper = new THREE.GridHelper(200, 20);
-    this.GridHelper.geometry.rotateX(Math.PI / 2);
-    this.GridHelper.material["opacity"] = 0.2;
-    this.GridHelper.material["transparent"] = true;
-    this.GridHelper.name = "GridHelper";
-    this.scene.add(this.GridHelper);
+    // this.axisHelper = new THREE.AxesHelper(200);
+    // this.axisHelper.name = "axisHelper";
+    // this.scene.add(this.axisHelper);
+    // this.GridHelper = new THREE.GridHelper(200, 20);
+    // this.GridHelper.geometry.rotateX(Math.PI / 2);
+    // this.GridHelper.material["opacity"] = 0.2;
+    // this.GridHelper.material["transparent"] = true;
+    // this.GridHelper.name = "GridHelper";
+    // this.scene.add(this.GridHelper);
+
   }
 
   public setNewHelper(max: number) {
@@ -188,12 +191,12 @@ export class SceneService {
 
   private createNewScale(Distance: number): void {
     // AxisHelperをthis.sceneから取り除く.
-    this.scene.remove(this.axisHelper);
+    // this.scene.remove(this.axisHelper);
 
     // AxisHelperを新たに作成し、追加する.
-    this.axisHelper = new THREE.AxesHelper(Distance * 2);
-    this.axisHelper.name = "axisHelper";
-    this.scene.add(this.axisHelper);
+    // this.axisHelper = new THREE.AxesHelper(Distance * 2);
+    // this.axisHelper.name = "axisHelper";
+    // this.scene.add(this.axisHelper);
 
     // GridHelperをthis.sceneから取り除く.
     this.scene.remove(this.GridHelper);
@@ -205,6 +208,45 @@ export class SceneService {
     this.GridHelper.material["transparent"] = true;
     this.GridHelper.name = "GridHelper";
     this.scene.add(this.GridHelper);
+
+    
+    // 勝川のモデルを
+    this.circle = new THREE.Group();
+    const geometry1 = new THREE.CircleGeometry( 14.25, 32 );
+    const material1 = new THREE.MeshBasicMaterial( { 
+      color: 0x00ffff, opacity: 0.05, transparent: true } );
+
+    const curve = new THREE.EllipseCurve(
+      0, 0, // ax, aY
+      14.25, 14.25, // xRadius, yRadius
+      0, 2 * Math.PI, // aStartAngle, aEndAngle
+      false, // aClockwise
+      0 // aRotation
+    );      
+    const points = curve.getPoints(50);
+    const line_geo = new THREE.BufferGeometry().setFromPoints(points);
+    const line_mat = new THREE.MeshBasicMaterial( { 
+      color: 0x0000ff, opacity: 0.1, transparent: true } );
+    
+    for(const z of [65.1, 59.01, 52.71, 47.21, 36.91, 22.96, 16.46]){
+      const circle1 = new THREE.Mesh( geometry1, material1 );
+      circle1.position.set(7, 8.25, z);
+      this.circle.add( circle1 );
+
+      const ellipse = new THREE.Line(line_geo, line_mat);
+      ellipse.position.set(7, 8.25, z);
+      this.circle.add( ellipse );
+    }
+    this.scene.add( this.circle );
+    /*/ 円筒形
+    const geometry2 = new THREE.CylinderGeometry( 14.25, 14.25, 65.1, 32, 20, true );
+    const material2 = new THREE.MeshBasicMaterial( {
+      color: 0x000000, opacity: 0.1, transparent: true, wireframe: true } );
+    const cylinder = new THREE.Mesh( geometry2, material2 );
+    cylinder.position.set(7, 8.25, 32.55);
+    cylinder.rotateX(Math.PI/2);
+    this.scene.add( cylinder );
+    */
   }
 
   // コントロール
