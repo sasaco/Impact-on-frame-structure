@@ -84,8 +84,8 @@ export class ResultDataService {
     this.setCombinePickup(Object.keys(jsonData));
 
     // 基本ケース の集計 -> 組み合わせの集計まで じゅずツナギ
-    this.disg.setDisgJson(jsonData, this.defList, this.combList, this.pickList);
-    this.reac.setReacJson(jsonData, this.defList, this.combList, this.pickList);
+    // this.disg.setDisgJson(jsonData, this.defList, this.combList, this.pickList);
+    // this.reac.setReacJson(jsonData, this.defList, this.combList, this.pickList);
     this.fsec.setFsecJson(jsonData, this.defList, this.combList, this.pickList);
   }
 
