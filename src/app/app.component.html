@@ -10,6 +10,7 @@
   <div class="body-container">
     <div class="btn-group">
       <nav>
+<!--
         <div class="input-area">
           <a
             routerLink="./input-nodes"
@@ -140,9 +141,10 @@
           </a>
           <p class="guide" translate>app.input</p>
         </div>
+  -->
         <div
           class="output-area"
-          *ngIf="disg.isCalculated || reac.isCalculated || fsec.isCalculated"
+          *ngIf="disg.isCalculated || reac.isCalculated || pik_fsec.isCalculated"
         >
           <a
             routerLink="./result-disg"
@@ -173,7 +175,7 @@
             <p translate>app.reaction</p>
           </a>
           <a
-            routerLink="./result-fsec"
+            routerLink="./result-pic_fsec"
             *ngIf="fsec.isCalculated"
             (click)="contentsDailogShow(12)"
             routerLinkActive="selected-item"
@@ -189,6 +191,7 @@
         </div>
       </nav>
     </div>
+
     <div id="print-loading">
       <svg
         width="50px"

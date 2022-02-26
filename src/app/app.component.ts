@@ -11,6 +11,7 @@ import { DataHelperModule } from "./providers/data-helper.module";
 import { TranslateService } from "@ngx-translate/core";
 
 import html2canvas from "html2canvas";
+import { ResultPickupFsecService } from "./components/result/result-pickup-fsec/result-pickup-fsec.service";
 
 @Component({
   selector: "app-root",
@@ -25,6 +26,7 @@ export class AppComponent implements OnInit {
     public printService: PrintService,
     public helper: DataHelperModule,
     public fsec: ResultFsecService,
+    public pik_fsec: ResultPickupFsecService,
     public disg: ResultDisgService,
     public reac: ResultReacService,
     public print: PrintService,

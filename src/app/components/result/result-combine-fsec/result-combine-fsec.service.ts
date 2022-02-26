@@ -120,7 +120,7 @@ export class ResultCombineFsecService {
         this.three.setCombResultData(this.fsecCombine, max_values, this.value_range);
 
       };
-      // this.worker1_test({ defList, combList, fsec, fsecKeys: this.fsecKeys});
+      this.worker1_test({ defList, combList, fsec, fsecKeys: this.fsecKeys});
       this.worker1.postMessage({ defList, combList, fsec, fsecKeys: this.fsecKeys});
 
     } else {
@@ -134,7 +134,6 @@ export class ResultCombineFsecService {
 
 
   private worker1_test(data){
-
 
     // 文字列string を数値にする
     const toNumber = (num: string) => {
