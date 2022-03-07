@@ -11,6 +11,7 @@ import { DataHelperModule } from "./providers/data-helper.module";
 import { TranslateService } from "@ngx-translate/core";
 
 import html2canvas from "html2canvas";
+import { SqliteService } from "./sqlite.service";
 
 @Component({
   selector: "app-root",
@@ -29,12 +30,14 @@ export class AppComponent implements OnInit {
     public reac: ResultReacService,
     public print: PrintService,
     private translate: TranslateService,
+    private sq: SqliteService
   ) {
     this.translate.setDefaultLang("ja");
   }
 
   ngOnInit() {
     this.helper.isContentsDailogShow = false;
+    this.sq.onInit();
   }
 
   // 計算結果表示ボタンを無効にする

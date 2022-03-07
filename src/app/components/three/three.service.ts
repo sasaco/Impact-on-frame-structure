@@ -69,7 +69,8 @@ export class ThreeService {
     // ファイルを読み込んだ
     this.node.changeData();
     this.member.changeData();
-    this.fixNode.ClearData();
+    // this.fixNode.ClearData();
+    this.fixNode.changeData(1);
     this.fixMember.ClearData();
     this.joint.ClearData();
     this.panel.changeData();

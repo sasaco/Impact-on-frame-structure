@@ -62,7 +62,15 @@ export class MenuComponent implements OnInit {
     this.fileName = "";
     this.three.fileName = "";
     this.helper.isContentsDailogShow = false;
-    this.setDimension(2);
+    this.setDimension(3);
+    this.http.get('assets/data/C1.json').subscribe(
+      (response) => {
+        this.readFile(response);
+      },
+      (error) => {
+        console.log('エラー',error)
+      }
+    );
   }
 
   // 新規作成
@@ -94,33 +102,36 @@ export class MenuComponent implements OnInit {
     this.three.fileName = file.name;
     evt.target.value = "";
     this.fileToText(file)
-      .then((text) => {
-        this.app.dialogClose(); // 現在表示中の画面を閉じる
-        this.ResultData.clear(); // 解析結果を削除
-        const old = this.helper.dimension;
-        const jsonData: {} = JSON.parse(text);
-        let resultData: {} = null;
-        if ("result" in jsonData) {
-          resultData = jsonData["result"];
-          delete jsonData["result"];
-        }
-        this.InputData.loadInputData(jsonData); // データを読み込む
-        if (resultData !== null) {
-          this.ResultData.loadResultData(resultData); // 解析結果を読み込む
-          this.ResultData.isCalculated = true;
-        } else {
-          this.ResultData.isCalculated = false;
-        }
-        if (old !== this.helper.dimension) {
-          this.setDimension(this.helper.dimension);
-        }
-        this.three.fileload();
-        modalRef.close();
-      })
-      .catch((err) => {
-        alert(err);
-        modalRef.close();
-      });
+    .then((text) => {
+      const jsonData: {} = JSON.parse(text);
+      this.readFile(jsonData);
+    })
+    .catch((err) => {
+      alert(err);
+    });
+    modalRef.close();
+  }
+
+  private readFile(jsonData){
+    this.app.dialogClose(); // 現在表示中の画面を閉じる
+    this.ResultData.clear(); // 解析結果を削除
+    const old = this.helper.dimension;
+    let resultData: {} = null;
+    if ("result" in jsonData) {
+      resultData = jsonData["result"];
+      delete jsonData["result"];
+    }
+    this.InputData.loadInputData(jsonData); // データを読み込む
+    if (resultData !== null) {
+      this.ResultData.loadResultData(resultData); // 解析結果を読み込む
+      this.ResultData.isCalculated = true;
+    } else {
+      this.ResultData.isCalculated = false;
+    }
+    if (old !== this.helper.dimension) {
+      this.setDimension(this.helper.dimension);
+    }
+    this.three.fileload();
   }
 
   // 上書き保存
