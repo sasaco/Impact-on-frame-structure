@@ -122,13 +122,12 @@ export class ThreeComponent implements AfterViewInit, OnDestroy {
   // マウス移動時のイベント
   @HostListener("mousemove", ["$event"])
   public onMouseMove(event: MouseEvent) {
-    return; // クリックイベントが発生しないバグが解決するまで全てのマウスイベントを無効にする
     const mouse: THREE.Vector2 = this.getMousePosition(event);
     this.three.detectObject(mouse, "hover");
   }
 
   // マウス位置とぶつかったオブジェクトを検出する
-  private getMousePosition(event: MouseEvent): THREE.Vector2 {
+  public getMousePosition(event: MouseEvent): THREE.Vector2 {
     event.preventDefault();
     const rect = this.scene.getBoundingClientRect();
     const mouse = new THREE.Vector2();

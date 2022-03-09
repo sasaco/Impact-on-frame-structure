@@ -20,6 +20,7 @@ import html2canvas from "html2canvas";
 import { PrintService } from "../print/print.service";
 import { PrintCustomThreeService } from "../print/custom/print-custom-three/print-custom-three.service";
 import { ResultCombineFsecService } from "../result/result-combine-fsec/result-combine-fsec.service";
+import { LoadService } from "./load.service";
 
 @Injectable({
   providedIn: "root",
@@ -53,7 +54,8 @@ export class ThreeService {
     private InputData: InputDataService,
     private secForce: ThreeSectionForceService,
     private customThree: PrintCustomThreeService,
-    private resultFsec: ResultCombineFsecService
+    private resultFsec: ResultCombineFsecService,
+    private load2: LoadService
   ) {}
 
   //////////////////////////////////////////////////////
@@ -61,6 +63,7 @@ export class ThreeService {
   public OnInit(): void {
     this.node.OnInit();
     this.member.OnInit();
+    this.load2.onInit();
   }
 
   //////////////////////////////////////////////////////
@@ -78,7 +81,6 @@ export class ThreeService {
     this.disg.ClearData();
     this.reac.ClearData();
     this.fsec.ClearData();
-
     this.scene.render();
   }
 
@@ -575,6 +577,8 @@ export class ThreeService {
   // マウス位置とぶつかったオブジェクトを検出する
   public detectObject(mouse: THREE.Vector2, action: string): void {
     const raycaster = this.scene.getRaycaster(mouse);
+    this.load2.detectObject(raycaster, action);
+    return;
 
     switch (this.mode) {
       case "nodes": // 節点データの更新

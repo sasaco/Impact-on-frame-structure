@@ -30,14 +30,12 @@ export class AppComponent implements OnInit {
     public reac: ResultReacService,
     public print: PrintService,
     private translate: TranslateService,
-    private sq: SqliteService
   ) {
     this.translate.setDefaultLang("ja");
   }
 
   ngOnInit() {
     this.helper.isContentsDailogShow = false;
-    this.sq.onInit();
   }
 
   // 計算結果表示ボタンを無効にする

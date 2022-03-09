@@ -17,20 +17,20 @@ export class SceneService {
 
   // レンダラー
   private renderer: THREE.WebGLRenderer = null;
-  private labelRenderer: CSS2DRenderer = null;
+  public labelRenderer: CSS2DRenderer = null;
 
   // ギズモ
   private controlsGizmo: HTMLCanvasElement = null;
   //private controlsGizmoParent: OrbitControlsGizmo;
 
   // カメラ
-  private camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  public camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
   private PerspectiveCamera: THREE.PerspectiveCamera;
   private OrthographicCamera: THREE.OrthographicCamera;
   private aspectRatio: number;
   private Width: number;
   private Height: number;
-  private controls: OrbitControls;
+  public controls: OrbitControls;
 
   // helper
   private axisHelper: THREE.AxesHelper;
@@ -160,8 +160,10 @@ export class SceneService {
 
     this.camera.updateMatrix();
     this.controls.update();
+
     this.render();
   }
+
 
   // 床面を生成する
   private createHelper() {
@@ -220,6 +222,7 @@ export class SceneService {
 
     // Gizmoを作り直す
     this.addGizmo();
+
   }
 
   // Gizmoは、カメラの切り替わりのたびに作りなおす
@@ -516,4 +519,6 @@ export class SceneService {
   public maxMinClear() {
     document.getElementById("max-min").style.display = "none";
   }
+
+
 }
