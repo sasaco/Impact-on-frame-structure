@@ -40,7 +40,6 @@ export class ThreeDisplacementService {
   // アニメーションのオブジェクト
   private animationObject: any;
 
-
   constructor(private scene: SceneService,
               private node: InputNodesService,
               private member: InputMembersService,
@@ -110,6 +109,12 @@ export class ThreeDisplacementService {
     }
   }
 
+  // 初期化
+  public onInit(node, member): void{
+    // this.nodeData = node;
+    // this.membData = member;
+  }
+
   private guiEnable(): void {
     if (this.gui !== null) {
       return;
@@ -131,47 +136,6 @@ export class ThreeDisplacementService {
     this.gui = null;
   }
 
-  // 解析結果をセットする
-  public setResultData(getDisgJson: any, max_values: any, value_range: any, mode: string): void {
-
-    this.nodeData = this.node.getNodeJson(0);
-    this.membData = this.member.getMemberJson(0);
-    
-    /////// パネルの1辺を仮想の部材として登録
-    const panelData = this.panel.getPanelJson(0);
-    for(const pk of Object.keys(panelData)){
-      const p = panelData[pk];
-      for(let i = 1; i < p.nodes.length; i++){
-        const temp = { 
-          'ni': p.nodes[i-1], 
-          'nj': p.nodes[i], 
-          'e': p.e, 
-          'cg': 0
-        };
-        if(!this.member.sameNodeMember(temp, this.membData)){
-          this.membData['p'+ pk + '-' + i.toString()] = temp;
-        }
-      }
-      const temp = {  // 最初と最後の負始点
-        'ni': p.nodes[0], 
-        'nj': p.nodes[p.nodes.length-1], 
-        'e': p.e, 
-        'cg': 0
-      };
-      if(!this.member.sameNodeMember(temp, this.membData)){
-        this.membData['p'+ pk + '-0'] = temp;
-      }
-    }
-    this.panelData = this.panel.getPanelJson(0);
-    this.allDisgData = getDisgJson;
-    this.max_values = max_values;
-    this.value_range[mode] = value_range;
-    // this.changeData(1);
-  }
-  // combineとpickupの解析結果をセットする
-  public setCombPickResultData(value_range: any, mode: string): void {
-    this.value_range[mode] = value_range;
-  }
 
   public changeData(index: number): void {
 
@@ -189,7 +153,7 @@ export class ThreeDisplacementService {
       this.visibleChange(false);
       return;
     }
-    
+
     // 変位データを入手
     const targetKey: string = index.toString();
     if (!(targetKey in this.allDisgData)) {
@@ -262,7 +226,7 @@ export class ThreeDisplacementService {
       if(di.rx===dj.rx && di.ry===dj.ry && di.rz===dj.rz ){
         Division = 1;
       }
-      
+
       this.targetData.push({
         name: key,
         xi: i.x,
@@ -464,5 +428,56 @@ export class ThreeDisplacementService {
 
     return [minDistance, maxDistance];
   }
+
+  /************************************************************************************
+  /************************************************************************************
+  /************************************************************************************
+  使わない関数
+  /************************************************************************************
+  /************************************************************************************
+  *************************************************************************************/
+
+  // 解析結果をセットする
+  public setResultData(getDisgJson: any, max_values: any, value_range: any, mode: string): void {
+
+    this.nodeData = this.node.getNodeJson(0);
+    this.membData = this.member.getMemberJson(0);
+
+    /////// パネルの1辺を仮想の部材として登録
+    const panelData = this.panel.getPanelJson(0);
+    for(const pk of Object.keys(panelData)){
+      const p = panelData[pk];
+      for(let i = 1; i < p.nodes.length; i++){
+        const temp = {
+          'ni': p.nodes[i-1],
+          'nj': p.nodes[i],
+          'e': p.e,
+          'cg': 0
+        };
+        if(!this.member.sameNodeMember(temp, this.membData)){
+          this.membData['p'+ pk + '-' + i.toString()] = temp;
+        }
+      }
+      const temp = {  // 最初と最後の負始点
+        'ni': p.nodes[0], 
+        'nj': p.nodes[p.nodes.length-1], 
+        'e': p.e, 
+        'cg': 0
+      };
+      if(!this.member.sameNodeMember(temp, this.membData)){
+        this.membData['p'+ pk + '-0'] = temp;
+      }
+    }
+    this.panelData = this.panel.getPanelJson(0);
+    this.allDisgData = getDisgJson;
+    this.max_values = max_values;
+    this.value_range[mode] = value_range;
+    // this.changeData(1);
+  }
+  // combineとpickupの解析結果をセットする
+  public setCombPickResultData(value_range: any, mode: string): void {
+    this.value_range[mode] = value_range;
+  }
+
 
 }
