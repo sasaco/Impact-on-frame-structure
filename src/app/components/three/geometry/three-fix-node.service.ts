@@ -72,6 +72,7 @@ export class ThreeFixNodeService {
 
   // guiを表示する
   private guiEnable(): void {
+    return
     if (this.gui !== null) {
       return;
     }

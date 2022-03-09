@@ -9,15 +9,17 @@ import { ThreeDisplacementService } from './components/three/geometry/three-disp
 })
 export class SqliteService {
 
-  private BL: number[][] = new Array(); // 縦桁
-  private BC: number[][] = new Array(); // 横桁
-  private SL: number[][] = new Array(); // 縦スラブ
-  private SC: number[][] = new Array(); // 横スラブ
+  // private BL: number[][] = new Array(); // 縦桁
+  // private BC: number[][] = new Array(); // 横桁
+  // private SL: number[][] = new Array(); // 縦スラブ
+  // private SC: number[][] = new Array(); // 横スラブ
   private nodeData = {};
   private mamberData = {};
+  private disgData = [];
 
   private dz: number[][] = new Array(); // z方向の変位量
   private ry: number[][] = new Array(); // y軸周りの回転角
+  private rx: number[][] = new Array(); // y軸周りの回転角
 
   constructor(
     private http: HttpClient,
@@ -27,7 +29,6 @@ export class SqliteService {
   }
 
   public onInit(){
-
     this.disg.onInit(this.nodeData, this.mamberData);
   }
 
@@ -41,43 +42,48 @@ export class SqliteService {
       return;
     }
     // 荷重が載荷された場所を特定する
-    this.no1 = (10-p1.y) * 10 + p1.x * 1010; // 左上の節点番号
-    this.no3 = (10-p3.y) * 10 + p3.x * 1010; // 左下の節点番号
-    this.no2 = (10-p2.y) * 10 + p2.x * 1010; // 右上の節点番号
-    this.no4 = (10-p4.y) * 10 + p4.x * 1010; // 右下の節点番号
+    this.no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
+    this.no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 左下の節点番号
+    this.no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
+    this.no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
 
-    // 縦桁の変位量dz
-    for(const b1 of this.BL){
-      let di: Number = Number.NaN;
-      let ri: Number = Number.NaN;
-      let dj: Number = Number.NaN;
-      let rj: Number = Number.NaN;
-      for(const b2 of b1){
-        const d = this.get_dz(b2);
-        if(di === Number.NaN){
-          di = d[0];
-          ri = d[1];
-          continue;
-        }
-        dj = d[0];
-        rj = d[1];
-        // 変位図を描いて
-
-        // 次にそなえる
-        di = dj;
-        ri = rj;
-      }
+    // 変位を集計し表示する
+    for(const id of Object.keys(this.nodeData)){
+      const d = this.get_dz(Number(id));
+      this.disgData.push({
+        id, 
+        dx: 0, 
+        dy: 0,
+        dz: -d[0],
+        rx: d[1],
+        ry: d[2],
+        rz: 0
+      })
     }
-
-
+    console.log(this.no1,
+      this.no3,
+      this.no2,
+      this.no4,
+      this.disgData[0])
+      
+    this.disg.changeData(1, this.disgData);
   }
 
   private get_dz(taiget: number){
     const colmns = this.no2 - this.no1;
     const height = this.no4 - this.no1;
 
+    const title = this.dz[0];
+    let col = 0;
+    for(col=1; col<title.length; col++){
+      if(title[col] === taiget){
+        break
+      }
+    }
+
     let dz = 0;
     let ry = 0;
+    let rx = 0;
     for(let i=this.no1; i<=this.no4;i++){
       for(let j=i; j<=i+colmns; j+=101){
         const a = Math.floor(j/101);
@@ -86,12 +92,14 @@ export class SqliteService {
         const d = j-c;
         const index = Math.round(b+d);
         const col1 = this.dz[index];
-        dz += col1[taiget+1];
-        const col2 = this.ry[index];
-        ry += col2[taiget+1];
+        dz += col1[col];
+        const col2 = this.rx[index];
+        rx += col2[col];
+        const col3 = this.ry[index];
+        ry += col3[col];
       }
     }
-    return [dz, ry];
+    return [dz, rx, ry];
   }
 
 
@@ -124,13 +132,31 @@ export class SqliteService {
               this.ry.push(d);
             }
 
-            this.setLoad(
-              new Vector3(0,10,1),
-              new Vector3(5,10,1),
-              new Vector3(5,5,1),
-              new Vector3(0,5,1)
-            )
+            this.http.get('assets/data/rx.csv',{
+              responseType: 'text'}).subscribe(
+              (response) => {
+                const str: string = response.toString();
+    
+                // 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
+                for(let r of str.split("\n")){
+                  const d: number[] = new Array()
+                  for(let col of r.split(',')){
+                    d.push(Number(col));
+                  }
+                  this.rx.push(d);
+                }
 
+                this.setLoad(
+                  new Vector3(0,10,1),
+                  new Vector3(5,10,1),
+                  new Vector3(5,5,1),
+                  new Vector3(0,5,1)
+                )
+              },
+              (error) => {
+                console.log('エラー',error)
+              }
+            );
           },
           (error) => {
             console.log('エラー',error)
@@ -153,7 +179,7 @@ export class SqliteService {
     const rr= [0, 3030, 7070, 10100];
 
     // 縦桁
-    let no = 0;
+    const BL: number[][] = new Array();
     for(const j of cc){
       const L2: number[] = new Array();
       let ni: string = '';
@@ -161,31 +187,45 @@ export class SqliteService {
       for(let i=0; i<=10100; i+=c){
         L2.push(i+j)
 
-        if(nj===''){
-          nj = (i+j).toString();
+        if(ni===''){
+          ni = (i+j).toString();
           continue;
         }
-        ni = (i+j).toString();
-        this.mamberData['BL' + no] = {
+        nj = (i+j).toString();
+        this.mamberData[ni+'-'+nj] = {
           ni, nj, 'cg': 0,
           'e': (j===0 || j=== 100) ? '1' : '2'
         }
-        no++;
+        ni = nj;
       }
-      this.BL.push(L2)
+      BL.push(L2)
     }
 
     // 横桁
+    const BC: number[][] = new Array();
     for(const j of rr){
       const C2: number[] = new Array();
+      let ni: string = '';
+      let nj: string = '';
       for(let i=0; i<=100; i+=r){
         C2.push(i+j)
+
+        if(ni===''){
+          ni = (i+j).toString();
+          continue;
+        }
+        nj = (i+j).toString();
+        this.mamberData[ni+'-'+nj] = {
+          ni, nj, 'cg': 0,
+          'e': (j===0 || j=== 100) ? '1' : '2'
+        }
+        ni = nj;
       }
-      this.BC.push(C2)
+      BC.push(C2)
     }
 
     // 節点データ
-    for(const i of this.BC[0]){
+    for(const i of BC[0]){
       for(let j=0; j<=10100; j+=c){
         const no = (i+j).toString();
         this.nodeData[no] ={
@@ -197,10 +237,10 @@ export class SqliteService {
     }
 
     // 縦スラブ
-    for(const i of this.BC[0]){
+    for(const i of BC[0]){
       // 縦桁と同じ列はスキップ
       let a = false;
-      for(const b of this.BL){
+      for(const b of BL){
         if(i===b[0]){
           a=true;
           break
@@ -211,17 +251,30 @@ export class SqliteService {
       }
       // スラブ部材
       const S2: number[] = new Array();
+      let ni: string = '';
+      let nj: string = '';
       for(let j=0; j<=10100; j+=c){
         S2.push(i+j)
+
+        if(ni===''){
+          ni = (i+j).toString();
+          continue;
+        }
+        nj = (i+j).toString();
+        this.mamberData[ni+'-'+nj] = {
+          ni, nj, 'cg': 0,
+          'e': '3'
+        }
+        ni = nj;
       }
-      this.SL.push(S2)
+      // this.SL.push(S2)
     }
 
     // 横スラブ
-    for(const i of this.BL[0]){
+    for(const i of BL[0]){
       // 縦桁と同じ列はスキップ
       let a = false;
-      for(const b of this.BL){
+      for(const b of BL){
         if(i===b[0]){
           a=true;
           break
@@ -232,10 +285,24 @@ export class SqliteService {
       }
       // スラブ部材
       const S2: number[] = new Array();
+      let ni: string = '';
+      let nj: string = '';
+
       for(let j=0; j<=100; j+=r){
         S2.push(i+j)
+
+        if(ni===''){
+          ni = (i+j).toString();
+          continue;
+        }
+        nj = (i+j).toString();
+        this.mamberData[ni+'-'+nj] = {
+          ni, nj, 'cg': 0,
+          'e': '3'
+        }
+        ni = nj;
       }
-      this.SC.push(S2)
+      // this.SC.push(S2)
     }
 
   }

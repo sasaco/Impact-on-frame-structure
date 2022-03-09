@@ -53,6 +53,7 @@ export class ThreeNodesService {
 
   // 初期化
   public OnInit(): void { 
+    return
     // 節点番号の表示を制御する gui を登録する
     this.scene.gui.add( this.params, 'nodeNo' ).onChange( ( value ) => {
       for (const mesh of this.nodeList.children) {

@@ -96,8 +96,8 @@ export class ThreeDisplacementService {
 
     this.scale = 0.5;
 
-    this.nodeData = {};
-    this.membData = {};
+    // this.nodeData = {};
+    // this.membData = {};
     this.panelData = {};
     this.allDisgData = {};
     this.max_values = {};
@@ -111,8 +111,8 @@ export class ThreeDisplacementService {
 
   // 初期化
   public onInit(node, member): void{
-    // this.nodeData = node;
-    // this.membData = member;
+    this.nodeData = node;
+    this.membData = member;
   }
 
   private guiEnable(): void {
@@ -137,7 +137,7 @@ export class ThreeDisplacementService {
   }
 
 
-  public changeData(index: number): void {
+  public changeData(index: number, disgData=null): void {
 
     // 格点データを入手
     if (Object.keys(this.nodeData).length <= 0) {
@@ -156,9 +156,13 @@ export class ThreeDisplacementService {
 
     // 変位データを入手
     const targetKey: string = index.toString();
-    if (!(targetKey in this.allDisgData)) {
-      this.visibleChange(false);
-      return;
+    if(disgData === null){
+      if (!(targetKey in this.allDisgData)) {
+        this.visibleChange(false);
+        return;
+      }
+    } else{
+      this.allDisgData[targetKey] = disgData;
     }
 
     // スケールの決定に用いる変数を写す
@@ -186,6 +190,7 @@ export class ThreeDisplacementService {
     // 描く
     this.changeDisg(targetKey, membKeys, minDistance, maxDistance);
 
+    this.scene.render();
   }
 
   private changeDisg(targetKey: string, membKeys: string[],
@@ -326,7 +331,7 @@ export class ThreeDisplacementService {
 
   private onResize(): void {
 
-    let scale: number = this.targetData['scale'] * this.scale * 0.7;
+    let scale: number = this.targetData['scale'] * this.scale * 50;
 
     for (let i = 0; i < this.targetData.length; i++) {
       const target = this.targetData[i];
@@ -418,7 +423,7 @@ export class ThreeDisplacementService {
     for ( const memberNo of Object.keys(member)){
       let l: number;
       if (!memberNo.includes('p')){
-        l = this.member.getMemberLength(memberNo);
+        l = this.getMemberLength(memberNo);
       } else {
         l = this.panel.getPanelLength(member[memberNo]);
       }
@@ -429,6 +434,47 @@ export class ThreeDisplacementService {
     return [minDistance, maxDistance];
   }
 
+  public getMemberLength(memberNo: string): number {
+
+    const memb = this.membData[memberNo];
+    if (memb.ni === undefined || memb.nj === undefined) {
+      return null;
+    }
+    const ni: string = memb.ni;
+    const nj: string = memb.nj;
+    if (ni === null || nj === null) {
+      return null;
+    }
+
+    const iPos = this.getNodePos(ni)
+    const jPos = this.getNodePos(nj)
+    if (iPos == null || jPos == null) {
+      return null;
+    }
+
+    const xi: number = iPos['x'];
+    const yi: number = iPos['y'];
+    const zi: number = iPos['z'];
+    const xj: number = jPos['x'];
+    const yj: number = jPos['y'];
+    const zj: number = jPos['z'];
+
+    const result: number = Math.sqrt((xi - xj) ** 2 + (yi - yj) ** 2 + (zi - zj) ** 2);
+    return result;
+
+  }
+
+  public getNodePos(nodeNo: string) {
+    // const nodeList: {} = this.getNodeJson();
+    if (Object.keys(this.nodeData).length <= 0) {
+      return null;
+    }
+    if (!(nodeNo in this.nodeData)) {
+      return null;
+    }
+    const node = this.nodeData[nodeNo];
+    return node;
+  }
   /************************************************************************************
   /************************************************************************************
   /************************************************************************************

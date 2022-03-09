@@ -56,6 +56,7 @@ export class ThreeMembersService {
 
   // 初期化
   public OnInit(): void {
+    return
     // 部材番号の表示を制御する gui を登録する
     this.scene.gui.add(this.params, "memberNo").onChange((value) => {
       for (const mesh of this.memberList.children) {
