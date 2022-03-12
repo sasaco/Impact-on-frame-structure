@@ -40,11 +40,12 @@ export class SqliteService {
     const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
 
     // 変位を集計し表示する
+    this.disgData = new Array();
     for(const id of Object.keys(this.nodeData)){
       const d = this.get_dz(Number(id), no1, no2, no3, no4);
       this.disgData.push({
-        id, 
-        dx: 0, 
+        id,
+        dx: 0,
         dy: 0,
         dz: -d[0],
         rx: -d[1],
@@ -52,11 +53,8 @@ export class SqliteService {
         rz: 0
       })
     }
-    
-    this.disg.changeData(1, this.disgData);
 
-    const d = this.get_dz(Number("1050"), no1, no2, no3, no4)
-    console.log(d, no1, no3, no2, no4,)
+    this.disg.changeData(1, this.disgData);
 
   }
 
