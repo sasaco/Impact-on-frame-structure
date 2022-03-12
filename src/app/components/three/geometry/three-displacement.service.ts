@@ -205,6 +205,9 @@ export class ThreeDisplacementService {
 
       // 節点データを集計する
       const m = this.membData[key];
+      if(m.nj =='1050'){
+        console.log(m.nj)
+      }
       const i = this.nodeData[m.ni];
       const j = this.nodeData[m.nj];
       if (i === undefined || j === undefined) {
@@ -227,7 +230,7 @@ export class ThreeDisplacementService {
       if (di === undefined || dj === undefined) {
         continue;
       }
-      let Division = 20;
+      let Division = 10;
       if(di.rx===dj.rx && di.ry===dj.ry && di.rz===dj.rz ){
         Division = 1;
       }

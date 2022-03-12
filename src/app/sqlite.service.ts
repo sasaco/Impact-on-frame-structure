@@ -9,10 +9,6 @@ import { ThreeDisplacementService } from './components/three/geometry/three-disp
 })
 export class SqliteService {
 
-  // private BL: number[][] = new Array(); // 縦桁
-  // private BC: number[][] = new Array(); // 横桁
-  // private SL: number[][] = new Array(); // 縦スラブ
-  // private SC: number[][] = new Array(); // 横スラブ
   private nodeData = {};
   private mamberData = {};
   private disgData = [];
@@ -33,45 +29,39 @@ export class SqliteService {
   }
 
   // 荷重の変更を反映する
-  private no1 = 0;
-  private no3 = 0;
-  private no2 = 0;
-  private no4 = 0;
   setLoad(p1: Vector3, p2: Vector3, p3: Vector3, p4: Vector3) {
     if(this.dz.length===0){
       return;
     }
     // 荷重が載荷された場所を特定する
-    this.no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
-    this.no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 左下の節点番号
-    this.no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
-    this.no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
+    const no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
+    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 左下の節点番号
+    const no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
+    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
 
     // 変位を集計し表示する
     for(const id of Object.keys(this.nodeData)){
-      const d = this.get_dz(Number(id));
+      const d = this.get_dz(Number(id), no1, no2, no3, no4);
       this.disgData.push({
         id, 
         dx: 0, 
         dy: 0,
         dz: -d[0],
-        rx: d[1],
-        ry: d[2],
+        rx: -d[1],
+        ry: -d[2],
         rz: 0
       })
     }
-    console.log(this.no1,
-      this.no3,
-      this.no2,
-      this.no4,
-      this.disgData[0])
-      
+    
     this.disg.changeData(1, this.disgData);
+
+    const d = this.get_dz(Number("1050"), no1, no2, no3, no4)
+    console.log(d, no1, no3, no2, no4,)
+
   }
 
-  private get_dz(taiget: number){
-    const colmns = this.no2 - this.no1;
-    const height = this.no4 - this.no1;
+  private get_dz(taiget: number, no1: number, no2: number, no3: number, no4: number){
+    const colmns = no2 - no1;
 
     const title = this.dz[0];
     let col = 0;
@@ -81,25 +71,27 @@ export class SqliteService {
       }
     }
 
-    let dz = 0;
-    let ry = 0;
-    let rx = 0;
-    for(let i=this.no1; i<=this.no4;i++){
+    let _dz = 0;
+    let _ry = 0;
+    let _rx = 0;
+    for(let i=no1; i<=no4;i++){
       for(let j=i; j<=i+colmns; j+=101){
+
         const a = Math.floor(j/101);
         const b = a*51+1;
         const c = a*101;
         const d = j-c;
         const index = Math.round(b+d);
         const col1 = this.dz[index];
-        dz += col1[col];
+        _dz += col1[col];
         const col2 = this.rx[index];
-        rx += col2[col];
+        _rx += col2[col];
         const col3 = this.ry[index];
-        ry += col3[col];
+        _ry += col3[col];
       }
     }
-    return [dz, rx, ry];
+
+    return [_dz, _rx, _ry];
   }
 
 
