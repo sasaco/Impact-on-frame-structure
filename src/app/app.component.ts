@@ -11,6 +11,7 @@ import { DataHelperModule } from "./providers/data-helper.module";
 import { TranslateService } from "@ngx-translate/core";
 
 import html2canvas from "html2canvas";
+import { SqliteService } from "./sqlite.service";
 
 @Component({
   selector: "app-root",
