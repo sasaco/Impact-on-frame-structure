@@ -71,19 +71,21 @@ export class SqliteService {
     let _rx = 0;
     for(let i=no1; i<=no4;i++){ //0～50
       const io = 50 - Math.abs(50 - i);
+      const row = i - Math.floor(i/101)*101;
       for(let j=i; j<=i+colmns; j+=101){ // i=0: 0～5050 step 101
         // j: 荷重載荷点番号
         // jo: 左右対称上の荷重載荷点番号(j = 51のときjo = 49)
         const jo = 101*50 - Math.abs(101*(50 - Math.floor(j/101))) + io;
 
         let col = target2[0];
-        if (i!==io && j!==jo ){
+        const cc = Math.floor(j/101);
+        if (row >50 && cc>50 ){
           // 右下の領域の場合 target を転置
           col = target2[3];
-        } else if(i!==io){
+        } else if(row>50){
           // 左下の領域の場合 target を上下反転
           col = target2[1];
-        } else if(j!==jo){
+        } else if(cc>50){
           // 右上の領域の場合 target を左右反転
           col = target2[2];
         }
