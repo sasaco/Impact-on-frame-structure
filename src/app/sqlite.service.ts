@@ -35,9 +35,9 @@ export class SqliteService {
     }
     // 荷重が載荷された場所を特定する
     const no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
-    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 左下の節点番号
+    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 右下の節点番号
     const no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
-    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
+    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 左下の節点番号
 
     // 変位を集計し表示する
     this.disgData = new Array();
@@ -57,39 +57,105 @@ export class SqliteService {
     this.disg.changeData(1, this.disgData);
 
   }
-
+  // target: 着目している（変位量を出したい）節点番号 例)7100
   private get_dz(taiget: number, no1: number, no2: number, no3: number, no4: number){
     const colmns = no2 - no1;
 
     const title = this.dz[0];
-    let col = 0;
-    for(col=1; col<title.length; col++){
-      if(title[col] === taiget){
-        break
-      }
-    }
+    // let col = 0;
+    // for(col=1; col<title.length; col++){
+    //   //taiget=7130の場合 col=85 になる
+    //   if(title[col] === taiget){
+    //     break
+    //   }
+    // }
 
     let _dz = 0;
     let _ry = 0;
     let _rx = 0;
-    for(let i=no1; i<=no4;i++){
-      for(let j=i; j<=i+colmns; j+=101){
+    for(let i=no1; i<=no4;i++){ //0～50
+      const io = 50 - Math.abs(50 - i);
+      for(let j=i; j<=i+colmns; j+=101){ // i=0: 0～5050 step 101
+        // j: 荷重載荷点番号
+        // jo: 左右対称上の荷重載荷点番号(j = 51のときjo = 49)
+        const jo = 101*50 - Math.abs(101*(50 - Math.floor(j/101))) + io;
+        let target2 = taiget//何も変更しない
+        // if(j==jo){
+        //   target2 = taiget//何も変更しない
+        // }else if(/*jが左下の領域の場合 */){
+          // target を上下反転
+        // }
+        // }else if(/*jが右上下の領域の場合 */){
+          // target を左右反転
+        //   target2 = taiget
+        // }
+        // }else if(/*jが右下の領域の場合 */){
+        //   // target を転置
+        // }
 
-        const a = Math.floor(j/101);
+        
+        let col = 0;
+        for(col=1; col<title.length; col++){
+          if(title[col] === target2){
+            break
+          }
+        }
+
+        // const a = Math.floor(j/101);
+        const a = Math.floor(jo/101);
         const b = a*51+1;
         const c = a*101;
-        const d = j-c;
+        // const d = j-c;
+        const d = jo-c;
         const index = Math.round(b+d);
+        const col0 = this.getSymmetricalPosition(col);
         const col1 = this.dz[index];
-        _dz += col1[col];
+        _dz += col1[col0];
         const col2 = this.rx[index];
-        _rx += col2[col];
+        _rx += col2[col0];
         const col3 = this.ry[index];
-        _ry += col3[col];
+        _ry += col3[col0];
+        /* if (j === 7130 || j === 3070) {
+          if (j === 7130) {
+            if (taiget === 7130) {
+              const check = 7130; // index = 1571, col = 84
+              // col1[col] = 2.365383314782412e-7
+            }
+          } else if (j === 3070) {
+            if (taiget === 3070) {
+              const check = 3070; // index = 1571, col = 38
+              // col1[col] = 0.000006316286853311123
+            }
+          }
+          if (j !== jo) {
+            const check = 0;
+          }
+        } */
       }
     }
 
     return [_dz, _rx, _ry];
+  }
+
+  private getSymmetricalPosition(col: number) {
+
+    // 対称移動していいときと、いけないときがある
+    // いつ？
+
+    // 商(Quotient)
+    let Q: number = Math.floor(col / 11);
+    // 余(remainder)
+    let mod: number = col % 11;
+    if (mod === 0) {
+      Q -= 1;
+      mod = 11;
+    }
+
+    // 左上範囲への線対称移動の式
+    // 左から左, 上から上への対称移動無しも成立
+    const col0: number = 11 * (5 - Math.abs(Q - 5)) + (6 - Math.abs(mod - 6));
+
+    return col0
   }
 
 

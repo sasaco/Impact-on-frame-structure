@@ -124,8 +124,8 @@ export class LoadService {
     const obj = this.transformControl.object;
     //最大値・最小値
     for(const p of [this.p1,this.p2,this.p3,this.p4]){
-      if(p.position.x > 5){
-        p.position.x = 5;
+      if(p.position.x > 10){
+        p.position.x = 10;
       }
       if(p.position.x < 0){
         p.position.x = 0;
@@ -133,8 +133,8 @@ export class LoadService {
       if(p.position.y > 10){
         p.position.y = 10;
       }
-      if(p.position.y < 5){
-        p.position.y = 5;
+      if(p.position.y < 0){
+        p.position.y = 0;
       }
     }
     // 4隅の点の位置を更新
