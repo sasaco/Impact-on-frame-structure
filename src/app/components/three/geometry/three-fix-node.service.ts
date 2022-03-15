@@ -40,7 +40,7 @@ export class ThreeFixNodeService {
     this.currentIndex_sub = null;
 
     // gui
-    this.scale = 1.0;
+    this.scale = 0.5;
     this.params = {
       fixnodeScale: this.scale
     };
@@ -72,6 +72,7 @@ export class ThreeFixNodeService {
 
   // guiを表示する
   private guiEnable(): void {
+    return
     if (this.gui !== null) {
       return;
     }

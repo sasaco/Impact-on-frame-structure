@@ -12,6 +12,7 @@ import { TranslateService } from "@ngx-translate/core";
 
 import html2canvas from "html2canvas";
 import { ResultPickupFsecService } from "./components/result/result-pickup-fsec/result-pickup-fsec.service";
+import { SqliteService } from "./sqlite.service";
 
 @Component({
   selector: "app-root",
