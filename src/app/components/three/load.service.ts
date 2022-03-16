@@ -52,17 +52,17 @@ export class LoadService {
     const material = new THREE.MeshBasicMaterial( {color: 0x00ff00} );
 
     this.p1 = new THREE.Mesh( geometry, material );
-    this.p1.position.set(3.1, 2.9, 1);
+    this.p1.position.set(0, 10, 1);
     this.p1.name="p1"
     this.scene.add( this.p1 );
 
     this.p2 = new THREE.Mesh( geometry, material );
-    this.p2.position.set(4.9, this.p1.position.y, this.p1.position.z);
+    this.p2.position.set(5, this.p1.position.y, this.p1.position.z);
     this.p2.name="p2"
     this.scene.add( this.p2 );
 
     this.p3 = new THREE.Mesh( geometry, material );
-    this.p3.position.set(this.p2.position.x, 0, this.p1.position.z);
+    this.p3.position.set(this.p2.position.x, 5, this.p1.position.z);
     this.p3.name="p3"
     this.scene.add( this.p3 );
 
@@ -82,10 +82,7 @@ export class LoadService {
       transparent: true
     });
     this.cube = new THREE.Mesh( geometry2, material2 );
-    this.cube.position.set(
-      (this.p1.position.x + this.p2.position.x)/2,
-      (this.p2.position.y + this.p3.position.y)/2,
-      depth/2);
+    this.cube.position.set(width/2,this.p3.position.y + height/2,depth/2);
     this.scene.add( this.cube );
 
     // ライン
@@ -111,11 +108,7 @@ export class LoadService {
       );
       this.lines.add(new THREE.Line( geometry4, material3 ));
     }
-    this.lines.position.set(
-      this.cube.position.x,
-      this.cube.position.y,
-      0
-      );//.set(width/2,this.p3.position.y + height/2, 0);
+    this.lines.position.set(width/2,this.p3.position.y + height/2, 0);
     this.scene.add( this.lines );
 
     // 計算サービスに通知
@@ -129,20 +122,6 @@ export class LoadService {
 
   private updateSplineOutline() {
     const obj = this.transformControl.object;
-    // 大小関係
-    if(this.p1.position.x + 0.1 > this.p2.position.x){
-      this.p2.position.x = this.p1.position.x + 0.1
-    }
-    if(this.p4.position.x + 0.1 > this.p3.position.x){
-      this.p3.position.x = this.p4.position.x + 0.1
-    }
-    if(this.p4.position.y + 0.1 > this.p1.position.y){
-      this.p1.position.y = this.p4.position.y + 0.1
-    }
-    if(this.p3.position.y + 0.1 > this.p2.position.y){
-      this.p2.position.y = this.p3.position.y + 0.1
-    }
-
     //最大値・最小値
     for(const p of [this.p1,this.p2,this.p3,this.p4]){
       if(p.position.x > 10){

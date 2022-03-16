@@ -111,7 +111,7 @@ export class SqliteService {
         _ry += col3[col];
 
 
-        console.log(j + 'に荷重が載ったときの '+ target +'の変位量は, '+ col1[0] + 'に荷重が載ったときの '+ title[col] +'の変位量と同じ')
+        // console.log(j + 'に荷重が載ったときの '+ target +'の変位量は, '+ col1[0] + 'に荷重が載ったときの '+ title[col] +'の変位量と同じ')
 
       }
     }
@@ -124,6 +124,9 @@ export class SqliteService {
 
     const key = target.toString();
     if(key in this.nodeNo){
+      if(flg){
+        return this.nodeNo2[key];
+      }
       return this.nodeNo[key];
     }
     // 
