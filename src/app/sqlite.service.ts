@@ -12,6 +12,7 @@ export class SqliteService {
   private nodeData = {};
   private mamberData = {};
   private disgData = [];
+  private nodeNo = {};
 
   private dz: number[][] = new Array(); // z方向の変位量
   private ry: number[][] = new Array(); // y軸周りの回転角
@@ -35,9 +36,9 @@ export class SqliteService {
     }
     // 荷重が載荷された場所を特定する
     const no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
-    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 左下の節点番号
+    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 右下の節点番号
     const no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
-    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 右下の節点番号
+    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 左下の節点番号
 
     // 変位を集計し表示する
     this.disgData = new Array();
@@ -57,41 +58,116 @@ export class SqliteService {
     this.disg.changeData(1, this.disgData);
 
   }
+  // target: 着目している（変位量を出したい）節点番号 例)7100
+  private get_dz(target: number, no1: number, no2: number, no3: number, no4: number){
 
-  private get_dz(taiget: number, no1: number, no2: number, no3: number, no4: number){
+    // 変位算出点の変換
+    const target2 = this.setNodeNo(target);
+
     const colmns = no2 - no1;
-
-    const title = this.dz[0];
-    let col = 0;
-    for(col=1; col<title.length; col++){
-      if(title[col] === taiget){
-        break
-      }
-    }
 
     let _dz = 0;
     let _ry = 0;
     let _rx = 0;
-    for(let i=no1; i<=no4;i++){
-      for(let j=i; j<=i+colmns; j+=101){
+    for(let i=no1; i<=no4;i++){ //0～50
+      const io = 50 - Math.abs(50 - i);
+      const row = i - Math.floor(i/101)*101;
+      for(let j=i; j<=i+colmns; j+=101){ // i=0: 0～5050 step 101
+        // j: 荷重載荷点番号
+        // jo: 左右対称上の荷重載荷点番号(j = 51のときjo = 49)
+        const jo = 101*50 - Math.abs(101*(50 - Math.floor(j/101))) + io;
 
-        const a = Math.floor(j/101);
+        let col = target2[0];
+        const cc = Math.floor(j/101);
+        if (row >50 && cc>50 ){
+          // 右下の領域の場合 target を転置
+          col = target2[3];
+        } else if(row>50){
+          // 左下の領域の場合 target を上下反転
+          col = target2[1];
+        } else if(cc>50){
+          // 右上の領域の場合 target を左右反転
+          col = target2[2];
+        }
+
+        // 荷重載荷点
+        const a = Math.floor(jo/101);
         const b = a*51+1;
         const c = a*101;
-        const d = j-c;
+        const d = jo-c;
         const index = Math.round(b+d);
+
         const col1 = this.dz[index];
         _dz += col1[col];
         const col2 = this.rx[index];
         _rx += col2[col];
         const col3 = this.ry[index];
         _ry += col3[col];
+
       }
     }
 
     return [_dz, _rx, _ry];
   }
 
+
+  private setNodeNo(target: number): number[]{
+
+    const key = target.toString();
+    if(key in this.nodeNo){
+      return this.nodeNo[key];
+    }
+    // 
+    const title = this.dz[0];
+
+    // 左上の場合
+    const e0 = target; // 左上の場合
+    
+    // 左下の領域の場合 target を上下反転
+    const a1 = Math.floor(target/101);
+    const b1 = 101 * a1;
+    const c1 = target - b1; 
+    const d1 = b1 + 100;
+    const e1 = d1 - c1;
+    
+    // 右上の領域の場合 target を左右反転
+    const b2 = target - b1;
+    const c2 = b2 + 10100;
+    const e2 = c2 - b1;
+    
+    // 右下の領域の場合 target を転置
+    const e3 = 10200 - target;
+
+    // 
+    const result = [0,0,0,0];
+    let i = 0;
+    for(let col=1; col<title.length; col++){
+      if(title[col] === e0){
+        result[0] = col;
+        i++;
+      }
+      if(title[col] === e1){
+        result[1] = col;
+        i++;
+      }
+      if(title[col] === e2){
+        result[2] = col;
+        i++;
+      }
+      if(title[col] === e3){
+        result[3] = col;
+        i++;
+      }
+      if(i>3){
+        break;
+      }
+    }
+    
+    // 登録
+    this.nodeNo[key] = result;
+
+    return result;
+  }
 
   private get_csv(){
     this.http.get('assets/data/dz.csv',{

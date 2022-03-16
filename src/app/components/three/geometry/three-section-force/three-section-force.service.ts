@@ -72,7 +72,7 @@ export class ThreeSectionForceService {
     });
 
     // gui
-    this.scale = 100;
+    this.scale = 700;
     this.textCount = 15; // 上位 15% の文字だけ出力する
     this.gui = null;
   }
@@ -156,7 +156,7 @@ export class ThreeSectionForceService {
     }
 
     const gui_step: number = 1;
-    const gui_max_scale: number = 1000;
+    const gui_max_scale: number = 1500;
 
     this.gui = {
       forceScale: this.scene.gui

@@ -122,10 +122,24 @@ export class LoadService {
 
   private updateSplineOutline() {
     const obj = this.transformControl.object;
+    // 大小関係
+    if(this.p1.position.x + 0.1 > this.p2.position.x){
+      this.p2.position.x = this.p1.position.x + 0.1
+    }
+    if(this.p4.position.x + 0.1 > this.p3.position.x){
+      this.p3.position.x = this.p4.position.x + 0.1
+    }
+    if(this.p4.position.y + 0.1 > this.p1.position.y){
+      this.p1.position.y = this.p4.position.y + 0.1
+    }
+    if(this.p3.position.y + 0.1 > this.p2.position.y){
+      this.p2.position.y = this.p3.position.y + 0.1
+    }
+
     //最大値・最小値
     for(const p of [this.p1,this.p2,this.p3,this.p4]){
-      if(p.position.x > 5){
-        p.position.x = 5;
+      if(p.position.x > 10){
+        p.position.x = 10;
       }
       if(p.position.x < 0){
         p.position.x = 0;
@@ -133,8 +147,8 @@ export class LoadService {
       if(p.position.y > 10){
         p.position.y = 10;
       }
-      if(p.position.y < 5){
-        p.position.y = 5;
+      if(p.position.y < 0){
+        p.position.y = 0;
       }
     }
     // 4隅の点の位置を更新
