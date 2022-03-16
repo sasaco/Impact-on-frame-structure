@@ -13,6 +13,7 @@ export class SqliteService {
   private mamberData = {};
   private disgData = [];
   private nodeNo = {};
+  private nodeNo2 = {};
 
   private dz: number[][] = new Array(); // z方向の変位量
   private ry: number[][] = new Array(); // y軸周りの回転角
@@ -60,7 +61,7 @@ export class SqliteService {
   }
   // target: 着目している（変位量を出したい）節点番号 例)7100
   private get_dz(target: number, no1: number, no2: number, no3: number, no4: number){
-
+    const title = this.dz[0];
     // 変位算出点の変換
     const target2 = this.setNodeNo(target);
 
@@ -70,24 +71,29 @@ export class SqliteService {
     let _ry = 0;
     let _rx = 0;
     for(let i=no1; i<=no4;i++){ //0～50
-      const io = 50 - Math.abs(50 - i);
+      // const io = 50 - Math.abs(50 - i);
       const row = i - Math.floor(i/101)*101;
       for(let j=i; j<=i+colmns; j+=101){ // i=0: 0～5050 step 101
+        const force = this.setNodeNo(j, true);
+
         // j: 荷重載荷点番号
         // jo: 左右対称上の荷重載荷点番号(j = 51のときjo = 49)
-        const jo = 101*50 - Math.abs(101*(50 - Math.floor(j/101))) + io;
-
+        // const jo = 101*50 - Math.abs(101*(50 - Math.floor(j/101))) + io;
         let col = target2[0];
+        let jo = force[0];
         const cc = Math.floor(j/101);
         if (row >50 && cc>50 ){
           // 右下の領域の場合 target を転置
           col = target2[3];
+          jo = force[3];
         } else if(row>50){
           // 左下の領域の場合 target を上下反転
           col = target2[1];
+          jo = force[1];
         } else if(cc>50){
           // 右上の領域の場合 target を左右反転
           col = target2[2];
+          jo = force[2];
         }
 
         // 荷重載荷点
@@ -104,17 +110,23 @@ export class SqliteService {
         const col3 = this.ry[index];
         _ry += col3[col];
 
+
+        // console.log(j + 'に荷重が載ったときの '+ target +'の変位量は, '+ col1[0] + 'に荷重が載ったときの '+ title[col] +'の変位量と同じ')
+
       }
     }
-
+    //console.log(_dz);
     return [_dz, _rx, _ry];
   }
 
 
-  private setNodeNo(target: number): number[]{
+  private setNodeNo(target: number, flg = false): number[]{
 
     const key = target.toString();
     if(key in this.nodeNo){
+      if(flg){
+        return this.nodeNo2[key];
+      }
       return this.nodeNo[key];
     }
     // 
@@ -138,7 +150,6 @@ export class SqliteService {
     // 右下の領域の場合 target を転置
     const e3 = 10200 - target;
 
-    // 
     const result = [0,0,0,0];
     let i = 0;
     for(let col=1; col<title.length; col++){
@@ -162,9 +173,16 @@ export class SqliteService {
         break;
       }
     }
-    
+
     // 登録
     this.nodeNo[key] = result;
+
+    // 部位材番号
+    const result2 = [e0,e1,e2,e3];
+    this.nodeNo2[key] = result2;
+    if(flg){
+      return result2;
+    }
 
     return result;
   }
@@ -212,6 +230,12 @@ export class SqliteService {
                   this.rx.push(d);
                 }
 
+                // this.setLoad(
+                //   new Vector3(3.1,2.9,1),
+                //   new Vector3(4.9,2.9,1),
+                //   new Vector3(4.9,0,1),
+                //   new Vector3(3.1,0,1)
+                // )
                 this.setLoad(
                   new Vector3(0,10,1),
                   new Vector3(5,10,1),
