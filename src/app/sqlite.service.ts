@@ -213,10 +213,10 @@ export class SqliteService {
                 }
 
                 this.setLoad(
-                  new Vector3(0,10,1),
-                  new Vector3(5,10,1),
-                  new Vector3(5,5,1),
-                  new Vector3(0,5,1)
+                  new Vector3(3.1,2.9,1),
+                  new Vector3(4.9,2.9,1),
+                  new Vector3(4.9,0,1),
+                  new Vector3(3.1,0,1)
                 )
               },
               (error) => {
