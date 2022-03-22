@@ -234,6 +234,11 @@ export class ThreeSectionForceService {
     this.params[target] = true;
   }
 
+  public OnInit(nodeData, memberData ){
+    this.nodeData = nodeData;
+    this.memberData = memberData;
+  }
+
   // 解析結果をセットする
   public setResultData(fsecJson: any, max_values: any, value_ranges: any): void {
     const keys = Object.keys(fsecJson);
@@ -242,8 +247,8 @@ export class ThreeSectionForceService {
       return;
     }
 
-    this.nodeData = this.node.getNodeJson(0);
-    this.memberData = this.member.getMemberJson(0);
+    // this.nodeData = this.node.getNodeJson(0);
+    // this.memberData = this.member.getMemberJson(0);
     this.fsecData.fsec = fsecJson;
     this.max_values.fsec = max_values;
     this.value_ranges.fsec = value_ranges;

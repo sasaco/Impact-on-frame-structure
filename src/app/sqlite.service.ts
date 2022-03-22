@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { Vector3 } from 'three';
 import { ThreeDisplacementService } from './components/three/geometry/three-displacement.service';
+import { SqfoceService } from './sqfoce.service';
 // import * as sqlite3 from 'sqlite3';
 
 @Injectable({
@@ -11,7 +12,8 @@ export class SqliteService {
 
   private nodeData = {};
   private mamberData = {};
-  private disgData = [];
+  private BL: number[][]; // 縦桁
+  private BC: number[][]; // 横桁
   private nodeNo = {};
   private nodeNo2 = {};
 
@@ -21,7 +23,8 @@ export class SqliteService {
 
   constructor(
     private http: HttpClient,
-    private disg: ThreeDisplacementService){
+    private disg: ThreeDisplacementService,
+    private force: SqfoceService){
     this.initBeam();
     this.get_csv();
   }
@@ -31,32 +34,45 @@ export class SqliteService {
   }
 
   // 荷重の変更を反映する
-  setLoad(p1: Vector3, p2: Vector3, p3: Vector3, p4: Vector3) {
+  setLoad(p: { p1:Vector3, p2:Vector3, p3:Vector3, p4:Vector3 }[] ) {
+    
     if(this.dz.length===0){
       return;
     }
-    // 荷重が載荷された場所を特定する
-    const no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
-    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 右下の節点番号
-    const no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
-    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 左下の節点番号
+
+    // 荷重が載荷された場所を特定する1
+    const n11 = Math.round((10-p[0].p1.y) * 10 + p[0].p1.x * 1010); // 左上の節点番号
+    const n13 = Math.round((10-p[0].p3.y) * 10 + p[0].p3.x * 1010); // 右下の節点番号
+    const n12 = Math.round((10-p[0].p2.y) * 10 + p[0].p2.x * 1010); // 右上の節点番号
+    const n14 = Math.round((10-p[0].p4.y) * 10 + p[0].p4.x * 1010); // 左下の節点番号
+
+    // 荷重が載荷された場所を特定する2
+    const n21 = Math.round((10-p[1].p1.y) * 10 + p[1].p1.x * 1010); // 左上の節点番号
+    const n23 = Math.round((10-p[1].p3.y) * 10 + p[1].p3.x * 1010); // 右下の節点番号
+    const n22 = Math.round((10-p[1].p2.y) * 10 + p[1].p2.x * 1010); // 右上の節点番号
+    const n24 = Math.round((10-p[1].p4.y) * 10 + p[1].p4.x * 1010); // 左下の節点番号
 
     // 変位を集計し表示する
-    this.disgData = new Array();
+    const disgData = new Array();
     for(const id of Object.keys(this.nodeData)){
-      const d = this.get_dz(Number(id), no1, no2, no3, no4);
-      this.disgData.push({
+      const d1 = this.get_dz(Number(id), n11, n12, n13, n14);
+      const d2 = this.get_dz(Number(id), n21, n22, n23, n24);
+
+      disgData.push({
         id,
         dx: 0,
         dy: 0,
-        dz: -d[0],
-        rx: -d[1],
-        ry: -d[2],
+        dz: -d1[0]-d2[0],
+        rx: -d1[1]-d2[1],
+        ry: -d1[2]-d2[2],
         rz: 0
       })
     }
 
-    this.disg.changeData(1, this.disgData);
+    this.disg.changeData(1, disgData);
+
+    // 断面力を集計する
+    this.force.setForce(this.nodeData, this.mamberData, this.BL, this.BC, disgData);
 
   }
   // target: 着目している（変位量を出したい）節点番号 例)7100
@@ -129,24 +145,24 @@ export class SqliteService {
       }
       return this.nodeNo[key];
     }
-    // 
+    //
     const title = this.dz[0];
 
     // 左上の場合
     const e0 = target; // 左上の場合
-    
+
     // 左下の領域の場合 target を上下反転
     const a1 = Math.floor(target/101);
     const b1 = 101 * a1;
-    const c1 = target - b1; 
+    const c1 = target - b1;
     const d1 = b1 + 100;
     const e1 = d1 - c1;
-    
+
     // 右上の領域の場合 target を左右反転
     const b2 = target - b1;
     const c2 = b2 + 10100;
     const e2 = c2 - b1;
-    
+
     // 右下の領域の場合 target を転置
     const e3 = 10200 - target;
 
@@ -220,7 +236,7 @@ export class SqliteService {
               responseType: 'text'}).subscribe(
               (response) => {
                 const str: string = response.toString();
-    
+
                 // 各行ごとにカンマで区切った文字列を要素とした二次元配列を生成
                 for(let r of str.split("\n")){
                   const d: number[] = new Array()
@@ -229,19 +245,18 @@ export class SqliteService {
                   }
                   this.rx.push(d);
                 }
-
-                // this.setLoad(
-                //   new Vector3(3.1,2.9,1),
-                //   new Vector3(4.9,2.9,1),
-                //   new Vector3(4.9,0,1),
-                //   new Vector3(3.1,0,1)
-                // )
-                this.setLoad(
-                  new Vector3(0,10,1),
-                  new Vector3(5,10,1),
-                  new Vector3(5,5,1),
-                  new Vector3(0,5,1)
-                )
+                this.setLoad([{
+                  p1: new Vector3(0,10,1),
+                  p2: new Vector3(5,10,1),
+                  p3: new Vector3(5,5,1),
+                  p4: new Vector3(0,5,1)
+                },{
+                  p1: new Vector3(0,5,1),
+                  p2: new Vector3(5,5,1),
+                  p3: new Vector3(5,0,1),
+                  p4: new Vector3(0,0,1)
+                }
+              ]);
               },
               (error) => {
                 console.log('エラー',error)
@@ -269,7 +284,7 @@ export class SqliteService {
     const rr= [0, 3030, 7070, 10100];
 
     // 縦桁
-    const BL: number[][] = new Array();
+    this.BL = new Array();
     for(const j of cc){
       const L2: number[] = new Array();
       let ni: string = '';
@@ -288,11 +303,11 @@ export class SqliteService {
         }
         ni = nj;
       }
-      BL.push(L2)
+      this.BL.push(L2)
     }
 
     // 横桁
-    const BC: number[][] = new Array();
+    this.BC = new Array();
     for(const j of rr){
       const C2: number[] = new Array();
       let ni: string = '';
@@ -311,11 +326,11 @@ export class SqliteService {
         }
         ni = nj;
       }
-      BC.push(C2)
+      this.BC.push(C2)
     }
 
     // 節点データ
-    for(const i of BC[0]){
+    for(const i of this.BC[0]){
       for(let j=0; j<=10100; j+=c){
         const no = (i+j).toString();
         this.nodeData[no] ={
@@ -327,10 +342,10 @@ export class SqliteService {
     }
 
     // 縦スラブ
-    for(const i of BC[0]){
+    for(const i of this.BC[0]){
       // 縦桁と同じ列はスキップ
       let a = false;
-      for(const b of BL){
+      for(const b of this.BL){
         if(i===b[0]){
           a=true;
           break
@@ -361,10 +376,10 @@ export class SqliteService {
     }
 
     // 横スラブ
-    for(const i of BL[0]){
+    for(const i of this.BL[0]){
       // 縦桁と同じ列はスキップ
       let a = false;
-      for(const b of BL){
+      for(const b of this.BL){
         if(i===b[0]){
           a=true;
           break
