@@ -34,27 +34,37 @@ export class SqliteService {
   }
 
   // 荷重の変更を反映する
-  setLoad(p1: Vector3, p2: Vector3, p3: Vector3, p4: Vector3) {
+  setLoad(p: { p1:Vector3, p2:Vector3, p3:Vector3, p4:Vector3 }[] ) {
+    
     if(this.dz.length===0){
       return;
     }
-    // 荷重が載荷された場所を特定する
-    const no1 = Math.round((10-p1.y) * 10 + p1.x * 1010); // 左上の節点番号
-    const no3 = Math.round((10-p3.y) * 10 + p3.x * 1010); // 右下の節点番号
-    const no2 = Math.round((10-p2.y) * 10 + p2.x * 1010); // 右上の節点番号
-    const no4 = Math.round((10-p4.y) * 10 + p4.x * 1010); // 左下の節点番号
+
+    // 荷重が載荷された場所を特定する1
+    const n11 = Math.round((10-p[0].p1.y) * 10 + p[0].p1.x * 1010); // 左上の節点番号
+    const n13 = Math.round((10-p[0].p3.y) * 10 + p[0].p3.x * 1010); // 右下の節点番号
+    const n12 = Math.round((10-p[0].p2.y) * 10 + p[0].p2.x * 1010); // 右上の節点番号
+    const n14 = Math.round((10-p[0].p4.y) * 10 + p[0].p4.x * 1010); // 左下の節点番号
+
+    // 荷重が載荷された場所を特定する2
+    const n21 = Math.round((10-p[1].p1.y) * 10 + p[1].p1.x * 1010); // 左上の節点番号
+    const n23 = Math.round((10-p[1].p3.y) * 10 + p[1].p3.x * 1010); // 右下の節点番号
+    const n22 = Math.round((10-p[1].p2.y) * 10 + p[1].p2.x * 1010); // 右上の節点番号
+    const n24 = Math.round((10-p[1].p4.y) * 10 + p[1].p4.x * 1010); // 左下の節点番号
 
     // 変位を集計し表示する
     const disgData = new Array();
     for(const id of Object.keys(this.nodeData)){
-      const d = this.get_dz(Number(id), no1, no2, no3, no4);
+      const d1 = this.get_dz(Number(id), n11, n12, n13, n14);
+      const d2 = this.get_dz(Number(id), n21, n22, n23, n24);
+
       disgData.push({
         id,
         dx: 0,
         dy: 0,
-        dz: -d[0],
-        rx: -d[1],
-        ry: -d[2],
+        dz: -d1[0]-d2[0],
+        rx: -d1[1]-d2[1],
+        ry: -d1[2]-d2[2],
         rz: 0
       })
     }
@@ -235,12 +245,18 @@ export class SqliteService {
                   }
                   this.rx.push(d);
                 }
-                this.setLoad(
-                  new Vector3(0,10,1),
-                  new Vector3(5,10,1),
-                  new Vector3(5,5,1),
-                  new Vector3(0,5,1)
-                )
+                this.setLoad([{
+                  p1: new Vector3(0,10,1),
+                  p2: new Vector3(5,10,1),
+                  p3: new Vector3(5,5,1),
+                  p4: new Vector3(0,5,1)
+                },{
+                  p1: new Vector3(0,5,1),
+                  p2: new Vector3(5,5,1),
+                  p3: new Vector3(5,0,1),
+                  p4: new Vector3(0,0,1)
+                }
+              ]);
               },
               (error) => {
                 console.log('エラー',error)

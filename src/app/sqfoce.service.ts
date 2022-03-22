@@ -22,6 +22,7 @@ export class SqfoceService {
       if(m.e==='3'){
         continue
       }
+      m['m'] = key;
       mamber[key] = m;
     }
     this.force.OnInit(nodeData, mamber);
